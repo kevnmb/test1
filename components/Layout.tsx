@@ -1,18 +1,18 @@
 
 import React from 'react';
-import { CalculatorTab } from '../types';
+import { Tab } from '../types';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeTab: CalculatorTab;
-  setActiveTab: (tab: CalculatorTab) => void;
+  activeTab: Tab;
+  setActiveTab: (tab: Tab) => void;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
-  const tabs = [
-    { id: CalculatorTab.MORTGAGE, label: 'Mortgage' },
-    { id: CalculatorTab.INVESTMENT, label: 'Investment' },
-    { id: CalculatorTab.RENT_VS_BUY, label: 'Rent vs Buy' },
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'mortgage', label: 'Mortgage' },
+    { id: 'investment', label: 'Investment' },
+    { id: 'rentvsbuy', label: 'Rent vs Buy' },
   ];
 
   return (
@@ -48,7 +48,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
             <div className="md:hidden flex space-x-2">
               <select 
                 value={activeTab} 
-                onChange={(e) => setActiveTab(e.target.value as CalculatorTab)}
+                onChange={(e) => setActiveTab(e.target.value as Tab)}
                 className="bg-slate-100 border-none rounded-md px-2 py-1 text-sm font-medium"
               >
                 {tabs.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}

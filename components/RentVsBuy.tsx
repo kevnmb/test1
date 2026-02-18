@@ -1,89 +1,93 @@
-
 import React, { useState, useMemo } from 'react';
-import InputGroup from './InputGroup';
-import { formatCurrency } from '../utils';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import Input from './Input';
+import { formatUSD } from '../utils';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const RentVsBuy: React.FC = () => {
-  const [rent, setRent] = useState(2200);
-  const [rentIncrease, setRentIncrease] = useState(3);
-  const [homePrice, setHomePrice] = useState(450000);
-  const [appreciation, setAppreciation] = useState(4);
-  const [years, setYears] = useState(10);
+  const [inputs, setInputs] = useState({
+    rent: 2400,
+    rentInc: 4,
+    price: 450000,
+    appreciation: 5,
+    maintenance: 1,
+    years: 15
+  });
 
-  const data = useMemo(() => {
-    let rentTotal = 0;
-    let buyTotal = 0;
-    const chartData = [];
-    
-    // Simple buying logic (maintenance, taxes, equity gain)
-    const monthlyMaint = (homePrice * 0.01) / 12;
-    const monthlyTaxIns = (homePrice * 0.015) / 12;
-    const mortgage = (homePrice * 0.8 * 0.0055); // estimated
+  const chartData = useMemo(() => {
+    let rentWealth = 0;
+    let buyWealth = 0;
+    const data = [];
 
-    for (let i = 1; i <= years; i++) {
-      const annualRent = rent * 12 * Math.pow(1 + rentIncrease / 100, i - 1);
-      rentTotal += annualRent;
-      
-      const annualBuyCosts = (mortgage + monthlyMaint + monthlyTaxIns) * 12;
-      buyTotal += annualBuyCosts;
+    // Simple wealth building model
+    // Buying assumes 20% down, net equity gain vs total costs
+    const downPayment = inputs.price * 0.2;
+    const mortgage = (inputs.price - downPayment) * 0.006 * 12; // Approx 7% rate
 
-      const equity = homePrice * Math.pow(1 + appreciation / 100, i) - homePrice;
-      
-      chartData.push({
-        year: i,
-        rentCost: Math.round(rentTotal),
-        buyCost: Math.round(buyTotal - equity), // Net cost considering equity gain
+    for (let i = 1; i <= inputs.years; i++) {
+      const annualRent = (inputs.rent * 12) * Math.pow(1 + inputs.rentInc / 100, i - 1);
+      rentWealth -= annualRent;
+
+      const value = inputs.price * Math.pow(1 + inputs.appreciation / 100, i);
+      const equity = value - (inputs.price * 0.8); // Simple equity (ignoring paydown for simplicity)
+      const expenses = (mortgage + (inputs.price * (inputs.maintenance / 100))) * i;
+      buyWealth = equity - expenses - downPayment;
+
+      data.push({
+        year: `Yr ${i}`,
+        rent: Math.round(rentWealth),
+        buy: Math.round(buyWealth)
       });
     }
-    return chartData;
-  }, [rent, rentIncrease, homePrice, appreciation, years]);
-
-  const winner = data[data.length - 1].buyCost < data[data.length - 1].rentCost ? 'Buying' : 'Renting';
+    return data;
+  }, [inputs]);
 
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
-          <h3 className="text-lg font-semibold text-slate-800 border-b pb-2">Renting Scenario</h3>
-          <InputGroup label="Monthly Rent" value={rent} onChange={setRent} prefix="$" />
-          <InputGroup label="Annual Rent Increase" value={rentIncrease} onChange={setRentIncrease} suffix="%" step={0.1} />
-        </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
-          <h3 className="text-lg font-semibold text-slate-800 border-b pb-2">Buying Scenario</h3>
-          <InputGroup label="Home Price" value={homePrice} onChange={setHomePrice} prefix="$" step={5000} />
-          <InputGroup label="Annual Appreciation" value={appreciation} onChange={setAppreciation} suffix="%" step={0.1} />
-        </div>
+        <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <h3 className="font-bold text-slate-800 border-b pb-4">Rental Path</h3>
+          <Input label="Monthly Rent" value={inputs.rent} max={10000} step={100} isCurrency onChange={(v) => setInputs({...inputs, rent: v})} />
+          <Input label="Annual Rent Increase" value={inputs.rentInc} max={15} isPercent onChange={(v) => setInputs({...inputs, rentInc: v})} />
+        </section>
+        <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <h3 className="font-bold text-slate-800 border-b pb-4">Homeownership Path</h3>
+          <Input label="Purchase Price" value={inputs.price} max={3000000} isCurrency onChange={(v) => setInputs({...inputs, price: v})} />
+          <Input label="Market Appreciation" value={inputs.appreciation} max={15} isPercent onChange={(v) => setInputs({...inputs, appreciation: v})} />
+        </section>
       </div>
 
-      <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+      <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h3 className="text-2xl font-bold text-slate-800">10-Year Comparison</h3>
-            <p className="text-slate-500">Net cost comparison (Expenses minus Equity gained)</p>
+            <h3 className="text-2xl font-bold text-slate-900">Wealth Accumulation Over Time</h3>
+            <p className="text-slate-500 text-sm">Comparing net cash outlay vs. net equity growth</p>
           </div>
-          <div className="mt-4 md:mt-0 p-4 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center space-x-3">
-            <span className="text-sm text-slate-600 font-medium">Potential Winner:</span>
-            <span className="text-xl font-bold text-emerald-700">{winner}</span>
+          <div className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-bold border border-emerald-100">
+             15 Year Forecast Window
           </div>
         </div>
 
-        <div className="h-96">
+        <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis dataKey="year" label={{ value: 'Years', position: 'insideBottom', offset: -5 }} />
-              <YAxis tickFormatter={(v) => `$${v/1000}k`} />
-              <Tooltip formatter={(v: number) => formatCurrency(v)} />
-              <Legend verticalAlign="top" height={36}/>
-              <Line type="monotone" dataKey="rentCost" name="Total Rent Cost" stroke="#ef4444" strokeWidth={3} dot={false} />
-              <Line type="monotone" dataKey="buyCost" name="Net Buy Cost" stroke="#059669" strokeWidth={3} dot={false} />
-            </LineChart>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorBuy" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="year" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v/1000}k`} />
+              <Tooltip formatter={(v: number) => formatUSD(v)} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+              <Area type="monotone" dataKey="rent" name="Net Wealth (Rent)" stroke="#ef4444" fillOpacity={1} fill="url(#colorRent)" strokeWidth={3} />
+              <Area type="monotone" dataKey="buy" name="Net Wealth (Buy)" stroke="#10b981" fillOpacity={1} fill="url(#colorBuy)" strokeWidth={3} />
+            </AreaChart>
           </ResponsiveContainer>
-        </div>
-        
-        <div className="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-200 text-sm text-slate-600 leading-relaxed italic">
-          *Note: This calculation provides a high-level comparison. Net Buy Cost subtracts estimated property appreciation (equity) from the total expenses (mortgage, tax, insurance, maintenance). Real-world results depend on local market conditions and individual loan terms.
         </div>
       </div>
     </div>

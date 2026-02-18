@@ -1,44 +1,32 @@
-
-export enum CalculatorTab {
-  MORTGAGE = 'MORTGAGE',
-  INVESTMENT = 'INVESTMENT',
-  RENT_VS_BUY = 'RENT_VS_BUY'
-}
+export type Tab = 'mortgage' | 'investment' | 'rentvsbuy';
 
 export interface MortgageInputs {
-  homePrice: number;
+  price: number;
   downPayment: number;
-  interestRate: number;
-  loanTerm: number;
-  propertyTax: number;
+  rate: number;
+  term: number;
+  tax: number;
   insurance: number;
   hoa: number;
 }
 
 export interface InvestmentInputs {
-  purchasePrice: number;
+  price: number;
   downPaymentPercent: number;
-  interestRate: number;
-  loanTerm: number;
-  monthlyRent: number;
-  otherIncome: number;
-  vacancyRate: number;
-  propertyTax: number;
-  insurance: number;
+  rate: number;
+  term: number;
+  rent: number;
+  vacancy: number;
   repairs: number;
   management: number;
+  taxes: number;
+  insurance: number;
 }
 
-export interface CalculationResult {
-  monthlyPayment: number;
-  totalInterest: number;
-  totalCost: number;
-  amortization: AmortizationEntry[];
-}
-
-export interface AmortizationEntry {
-  month: number;
-  principal: number;
-  interest: number;
-  remainingBalance: number;
+export interface RentVsBuyInputs {
+  rent: number;
+  rentIncrease: number;
+  homePrice: number;
+  appreciation: number;
+  maintenance: number;
 }
