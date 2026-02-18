@@ -1,0 +1,10 @@
+
+[build]
+  publish = "."
+  # If you are using a build tool like Vite, change this to "dist" and add a build command.
+  # command = "npm run build"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
